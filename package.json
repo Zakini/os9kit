@@ -8,7 +8,8 @@
     "storybook": "start-storybook -p 6006",
     "build-storybook": "build-storybook",
     "lint": "tsc --noEmit && eslint . --ext js,ts,jsx,tsx",
-    "fix": "eslint . --ext js,ts,jsx,tsx --fix"
+    "fix": "eslint . --ext js,ts,jsx,tsx --fix",
+    "prepare": "husky install"
   },
   "devDependencies": {
     "@babel/core": "^7.18.9",
@@ -29,7 +30,8 @@
     "eslint-plugin-n": "^15.2.4",
     "eslint-plugin-promise": "^6.0.0",
     "eslint-plugin-react": "^7.30.1",
-    "typescript": "^4.7.4"
+    "typescript": "^4.7.4",
+    "husky": "^7.0.0"
   },
   "peerDependencies": {
     "react": "^17.0.2",
