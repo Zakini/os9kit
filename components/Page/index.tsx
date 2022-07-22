@@ -4,7 +4,7 @@ import { Header } from '../Header';
 import './index.css';
 
 export const Page = () => {
-  const [user, setUser] = React.useState();
+  const [user, setUser] = React.useState<{ name: string } | undefined>();
 
   return (
     <article>

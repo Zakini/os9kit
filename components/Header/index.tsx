@@ -1,10 +1,17 @@
-import React from 'react';
+import React, { MouseEventHandler } from 'react';
 import PropTypes from 'prop-types';
 
 import { Button } from '../Button';
 import './index.css';
 
-export const Header = ({ user, onLogin, onLogout, onCreateAccount }) => (
+export type Props = {
+  user: { name: string }
+  onLogin: MouseEventHandler<HTMLButtonElement>
+  onLogout: MouseEventHandler<HTMLButtonElement>
+  onCreateAccount: MouseEventHandler<HTMLButtonElement>
+}
+
+export const Header = ({ user, onLogin, onLogout, onCreateAccount }: Props) => (
   <header>
     <div className="wrapper">
       <div>
