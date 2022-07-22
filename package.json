@@ -7,7 +7,8 @@
   "scripts": {
     "storybook": "start-storybook -p 6006",
     "build-storybook": "build-storybook",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit && eslint . --ext js,ts,jsx,tsx",
+    "fix": "eslint . --ext js,ts,jsx,tsx --fix"
   },
   "devDependencies": {
     "@babel/core": "^7.18.9",
@@ -19,7 +20,15 @@
     "@storybook/manager-webpack4": "^6.5.9",
     "@storybook/react": "^6.5.9",
     "@storybook/testing-library": "^0.0.13",
+    "@typescript-eslint/eslint-plugin": "^5.30.7",
+    "@typescript-eslint/parser": "^5.30.7",
     "babel-loader": "^8.2.5",
+    "eslint": "^8.20.0",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-n": "^15.2.4",
+    "eslint-plugin-promise": "^6.0.0",
+    "eslint-plugin-react": "^7.30.1",
     "typescript": "^4.7.4"
   },
   "peerDependencies": {
