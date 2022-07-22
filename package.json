@@ -1,0 +1,7 @@
+{
+  "name": "os9kit",
+  "version": "0.0.1",
+  "description": "A Mac OS 9 inspired component library",
+  "author": "Josh Wells (josh@zakini.co.uk)",
+  "license": "MIT"
+}
