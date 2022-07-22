@@ -18,12 +18,13 @@
     "@storybook/addon-essentials": "^6.5.9",
     "@storybook/addon-interactions": "^6.5.9",
     "@storybook/addon-links": "^6.5.9",
-    "@storybook/builder-webpack4": "^6.5.9",
-    "@storybook/manager-webpack4": "^6.5.9",
+    "@storybook/builder-webpack5": "^6.5.9",
+    "@storybook/manager-webpack5": "^6.5.9",
     "@storybook/react": "^6.5.9",
     "@storybook/testing-library": "^0.0.13",
     "@typescript-eslint/eslint-plugin": "^5.30.7",
     "@typescript-eslint/parser": "^5.30.7",
+    "autoprefixer": "^9.8.8",
     "babel-loader": "^8.2.5",
     "commitlint": "^17.0.3",
     "eslint": "^8.20.0",
@@ -33,7 +34,11 @@
     "eslint-plugin-promise": "^6.0.0",
     "eslint-plugin-react": "^7.30.1",
     "husky": "^7.0.0",
-    "typescript": "^4.7.4"
+    "postcss": "^8.4.14",
+    "postcss-loader": "^7.0.1",
+    "tailwindcss": "^3.1.6",
+    "typescript": "^4.7.4",
+    "webpack": "^5.73.0"
   },
   "peerDependencies": {
     "react": "^17.0.2",
