@@ -1,4 +1,5 @@
 import { HTMLAttributes, MouseEventHandler, PropsWithChildren, useState } from 'react'
+import Draggable from 'react-draggable'
 
 type ButtonProps = {
   type: 'close' | 'collapse'
@@ -24,7 +25,7 @@ const Button = ({ type, className, ...props }: ButtonProps & HTMLAttributes<HTML
 
   return (
     <button
-      className={`relative ${size} ${bg} ${border} ${className ?? ''}`}
+      className={`no-drag relative ${size} ${bg} ${border} ${className ?? ''}`}
       {...props}
     >
       <div className='m-[1px] h-[7px] bg-gradient-to-br from-[rgb(166,166,166)] to-[rgb(224,224,224)]' />
@@ -53,7 +54,7 @@ const TitleBar = ({ title, collapsed, onClose, onCollapse }: TitleBarProps) => {
     <div className={`${layout} ${font} ${bg} ${border}`}>
       <Button type='close' className='flex-none' onClick={onClose} />
       <Grill className='flex-1' />
-      <span className='flex-none'>{title}</span>
+      <span className='flex-none cursor-default'>{title}</span>
       <Grill className='flex-1' />
       <Button type='collapse' className='flex-none' onClick={onCollapse} />
     </div>
@@ -68,7 +69,9 @@ const Body = ({ className, collapsed, children, ...props }: PropsWithChildren<Bo
     {/* TODO border gradient 217 -> 140, left to right, top to bottom */}
     <div className='h-full border-4 border-t-0 border-[rgb(204,204,204)]'>
       <div className='h-full border border-[rgb(51,51,51)] border-r-[rgb(64,64,64)] border-b-[rgb(59,59,59)]'>
-        {children}
+        <div className='no-drag h-full'>
+          {children}
+        </div>
       </div>
     </div>
   </div>
@@ -78,20 +81,21 @@ const Window = ({ title, onClose, children }: PropsWithChildren<WindowProps>) =>
   const [collapsed, setCollapsed] = useState(false)
 
   return (
-    // TODO make draggable
     // TODO dashed copy of outer border when dragging
     // TODO make resizeable
-    <div style={{ width: '200px', height: '200px' }}>
-      <TitleBar
-        title={title}
-        collapsed={collapsed}
-        onClose={onClose}
-        onCollapse={() => setCollapsed(c => !c)}
-      />
-      <Body className='h-full' collapsed={collapsed}>
-        {children}
-      </Body>
-    </div>
+    <Draggable cancel='.no-drag'>
+      <div style={{ width: '200px', height: '200px' }}>
+        <TitleBar
+          title={title}
+          collapsed={collapsed}
+          onClose={onClose}
+          onCollapse={() => setCollapsed(c => !c)}
+        />
+        <Body className='h-full' collapsed={collapsed}>
+          {children}
+        </Body>
+      </div>
+    </Draggable>
   )
 }
 
