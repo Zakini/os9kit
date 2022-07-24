@@ -7,11 +7,6 @@ type Vector2D = {
   y: number
 }
 
-type Size2D = {
-  width: string
-  height: string
-}
-
 type ButtonProps = HTMLAttributes<HTMLButtonElement> & {
   type: 'close' | 'collapse'
 }
@@ -29,7 +24,6 @@ type BodyProps = PropsWithChildren<HTMLAttributes<HTMLDivElement>> & {
 
 type GhostProps = HTMLAttributes<HTMLDivElement> & {
   position: Vector2D
-  size: Size2D
 }
 
 type WindowProps = PropsWithChildren<Pick<TitleBarProps, 'title' | 'onClose'>> & {
@@ -96,11 +90,11 @@ const Body = ({ className, collapsed, children, ...props }: BodyProps) => (
   </div>
 )
 
-const Ghost = ({ size, position, className, style, ...props }: GhostProps) => (
+const Ghost = ({ position, className, style, ...props }: GhostProps) => (
   <div
     // TODO border with 1px wide black and white stripes
     className={`border-2 border-black border-dotted ${className ?? ''}`}
-    style={{ ...size, transform: `translate(${position.x}px, ${position.y}px)`, ...style }}
+    style={{ transform: `translate(${position.x}px, ${position.y}px)`, ...style }}
     {...props}
   />
 )
@@ -110,8 +104,6 @@ const Window = ({ title, position, onMove, onClose, children }: WindowProps) => 
   const [dragging, setDragging] = useState(false)
   const previousDragging = usePrevious(dragging)
   const [pendingOffset, setPendingOffset] = useState({ x: 0, y: 0 })
-
-  const size = { width: '200px', height: '200px' }
 
   useEffect(() => {
     if (dragging || !previousDragging) return
@@ -128,7 +120,14 @@ const Window = ({ title, position, onMove, onClose, children }: WindowProps) => 
       onDrag={(e, { deltaX, deltaY }) => setPendingOffset(({ x, y }) => ({ x: x + deltaX, y: y + deltaY }))}
       onStop={() => setDragging(false)}
     >
-      <div className='relative flex flex-col' style={{ ...size, transform: `translate(${position.x}px, ${position.y}px)` }}>
+      <div
+        className='relative flex flex-col'
+        style={{
+          height: collapsed ? 'inherit' : '200px',
+          width: '200px',
+          transform: `translate(${position.x}px, ${position.y}px)`
+        }}
+      >
         <TitleBar
           className='flex-none'
           title={title}
@@ -140,7 +139,7 @@ const Window = ({ title, position, onMove, onClose, children }: WindowProps) => 
           {children}
         </Body>
         {dragging
-          ? <Ghost className='absolute top-0' position={pendingOffset} size={size} />
+          ? <Ghost className='absolute top-0 h-full w-full' position={pendingOffset} />
           : null}
       </div>
     </Draggable>
