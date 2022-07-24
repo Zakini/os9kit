@@ -23,7 +23,7 @@ const Template: ComponentStory<typeof Window> = ({ position: inputPosition, ...a
       position={position}
       {...args}
       onMove={setPosition}
-      onClose={() => alert('Window closed')}
+      onClose={() => alert('Window should close')}
     />
   )
 }
