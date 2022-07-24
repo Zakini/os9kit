@@ -7,7 +7,8 @@ export default {
   title: 'Window',
   args: {
     title: 'Example Window',
-    position: { x: 0, y: 0 }
+    position: { x: 0, y: 0 },
+    size: { width: 200, height: 200 }
   }
 } as ComponentMeta<typeof Window>
 

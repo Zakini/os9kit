@@ -7,6 +7,11 @@ type Vector2D = {
   y: number
 }
 
+type Size2D = {
+  width: number
+  height: number
+}
+
 type ButtonProps = HTMLAttributes<HTMLButtonElement> & {
   type: 'close' | 'collapse'
 }
@@ -28,6 +33,7 @@ type GhostProps = HTMLAttributes<HTMLDivElement> & {
 
 type WindowProps = PropsWithChildren<Pick<TitleBarProps, 'title' | 'onClose'>> & {
   position: Vector2D
+  size: Size2D
   onMove: (position: Vector2D) => unknown
 }
 
@@ -99,7 +105,7 @@ const Ghost = ({ position, className, style, ...props }: GhostProps) => (
   />
 )
 
-const Window = ({ title, position, onMove, onClose, children }: WindowProps) => {
+const Window = ({ title, position, size: { width, height }, onMove, onClose, children }: WindowProps) => {
   const [collapsed, setCollapsed] = useState(false)
   const [dragging, setDragging] = useState(false)
   const previousDragging = usePrevious(dragging)
@@ -123,8 +129,8 @@ const Window = ({ title, position, onMove, onClose, children }: WindowProps) => 
       <div
         className='relative flex flex-col'
         style={{
-          height: collapsed ? 'inherit' : '200px',
-          width: '200px',
+          width: `${width}px`,
+          height: collapsed ? 'inherit' : `${height}px`,
           transform: `translate(${position.x}px, ${position.y}px)`
         }}
       >
