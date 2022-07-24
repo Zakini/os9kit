@@ -2,6 +2,16 @@ import { HTMLAttributes, MouseEventHandler, PropsWithChildren, useEffect, useSta
 import { DraggableCore as Draggable } from 'react-draggable'
 import { usePrevious } from '../utils'
 
+type Vector2D = {
+  x: number
+  y: number
+}
+
+type Size2D = {
+  width: string
+  height: string
+}
+
 type ButtonProps = HTMLAttributes<HTMLButtonElement> & {
   type: 'close' | 'collapse'
 }
@@ -18,11 +28,14 @@ type BodyProps = PropsWithChildren<HTMLAttributes<HTMLDivElement>> & {
 }
 
 type GhostProps = HTMLAttributes<HTMLDivElement> & {
-  position: { x: number, y: number }
-  size: { width: string, height: string }
+  position: Vector2D
+  size: Size2D
 }
 
-type WindowProps = PropsWithChildren<Pick<TitleBarProps, 'title' | 'onClose'>>
+type WindowProps = PropsWithChildren<Pick<TitleBarProps, 'title' | 'onClose'>> & {
+  position: Vector2D
+  onMove: (position: Vector2D) => unknown
+}
 
 const Button = ({ type, className, ...props }: ButtonProps) => {
   const size = 'w-[11px] h-[11px]'
@@ -92,11 +105,10 @@ const Ghost = ({ size, position, className, style, ...props }: GhostProps) => (
   />
 )
 
-const Window = ({ title, onClose, children }: WindowProps) => {
+const Window = ({ title, position, onMove, onClose, children }: WindowProps) => {
   const [collapsed, setCollapsed] = useState(false)
   const [dragging, setDragging] = useState(false)
   const previousDragging = usePrevious(dragging)
-  const [position, setPosition] = useState({ x: 0, y: 0 })
   const [pendingOffset, setPendingOffset] = useState({ x: 0, y: 0 })
 
   const size = { width: '200px', height: '200px' }
@@ -104,9 +116,9 @@ const Window = ({ title, onClose, children }: WindowProps) => {
   useEffect(() => {
     if (dragging || !previousDragging) return
 
-    setPosition(({ x, y }) => ({ x: x + pendingOffset.x, y: y + pendingOffset.y }))
+    onMove({ x: position.x + pendingOffset.x, y: position.y + pendingOffset.y })
     setPendingOffset({ x: 0, y: 0 })
-  }, [dragging, previousDragging, pendingOffset])
+  }, [dragging, previousDragging, position, pendingOffset, onMove])
 
   return (
     // TODO make resizeable
