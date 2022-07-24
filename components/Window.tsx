@@ -1,5 +1,6 @@
-import { HTMLAttributes, MouseEventHandler, PropsWithChildren, useState } from 'react'
-import Draggable from 'react-draggable'
+import { HTMLAttributes, MouseEventHandler, PropsWithChildren, useEffect, useState } from 'react'
+import { DraggableCore as Draggable } from 'react-draggable'
+import { usePrevious } from '../utils'
 
 type ButtonProps = HTMLAttributes<HTMLButtonElement> & {
   type: 'close' | 'collapse'
@@ -14,6 +15,11 @@ type TitleBarProps = HTMLAttributes<HTMLDivElement> & {
 
 type BodyProps = PropsWithChildren<HTMLAttributes<HTMLDivElement>> & {
   collapsed: boolean
+}
+
+type GhostProps = HTMLAttributes<HTMLDivElement> & {
+  position: { x: number, y: number }
+  size: { width: string, height: string }
 }
 
 type WindowProps = PropsWithChildren<Pick<TitleBarProps, 'title' | 'onClose'>>
@@ -77,14 +83,40 @@ const Body = ({ className, collapsed, children, ...props }: BodyProps) => (
   </div>
 )
 
+const Ghost = ({ size, position, className, style, ...props }: GhostProps) => (
+  <div
+    // TODO border with 1px wide black and white stripes
+    className={`border-2 border-black border-dotted ${className ?? ''}`}
+    style={{ ...size, transform: `translate(${position.x}px, ${position.y}px)`, ...style }}
+    {...props}
+  />
+)
+
 const Window = ({ title, onClose, children }: WindowProps) => {
   const [collapsed, setCollapsed] = useState(false)
+  const [dragging, setDragging] = useState(false)
+  const previousDragging = usePrevious(dragging)
+  const [position, setPosition] = useState({ x: 0, y: 0 })
+  const [pendingOffset, setPendingOffset] = useState({ x: 0, y: 0 })
+
+  const size = { width: '200px', height: '200px' }
+
+  useEffect(() => {
+    if (dragging || !previousDragging) return
+
+    setPosition(({ x, y }) => ({ x: x + pendingOffset.x, y: y + pendingOffset.y }))
+    setPendingOffset({ x: 0, y: 0 })
+  }, [dragging, previousDragging, pendingOffset])
 
   return (
-    // TODO dashed copy of outer border when dragging
     // TODO make resizeable
-    <Draggable cancel='.no-drag'>
-      <div className='flex flex-col' style={{ width: '200px', height: '200px' }}>
+    <Draggable
+      cancel='.no-drag'
+      onStart={() => setDragging(true)}
+      onDrag={(e, { deltaX, deltaY }) => setPendingOffset(({ x, y }) => ({ x: x + deltaX, y: y + deltaY }))}
+      onStop={() => setDragging(false)}
+    >
+      <div className='relative flex flex-col' style={{ ...size, transform: `translate(${position.x}px, ${position.y}px)` }}>
         <TitleBar
           className='flex-none'
           title={title}
@@ -95,6 +127,9 @@ const Window = ({ title, onClose, children }: WindowProps) => {
         <Body className='flex-1' collapsed={collapsed}>
           {children}
         </Body>
+        {dragging
+          ? <Ghost className='absolute top-0' position={pendingOffset} size={size} />
+          : null}
       </div>
     </Draggable>
   )
