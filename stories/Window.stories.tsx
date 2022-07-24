@@ -7,8 +7,7 @@ export default {
   title: 'Window',
   args: {
     title: 'Example Window',
-    position: { x: 0, y: 0 },
-    onClose: () => alert('Window closed')
+    position: { x: 0, y: 0 }
   }
 } as ComponentMeta<typeof Window>
 
@@ -20,7 +19,12 @@ const Template: ComponentStory<typeof Window> = ({ position: inputPosition, ...a
   }, [inputPosition])
 
   return (
-    <Window position={position} {...args} onMove={setPosition} />
+    <Window
+      position={position}
+      {...args}
+      onMove={setPosition}
+      onClose={() => alert('Window closed')}
+    />
   )
 }
 
