@@ -1,7 +1,7 @@
 import { HTMLAttributes, MouseEventHandler, PropsWithChildren, useState } from 'react'
 import Draggable from 'react-draggable'
 
-type ButtonProps = {
+type ButtonProps = HTMLAttributes<HTMLButtonElement> & {
   type: 'close' | 'collapse'
 }
 
@@ -12,13 +12,13 @@ type TitleBarProps = {
   onCollapse: MouseEventHandler<HTMLButtonElement>
 }
 
-type BodyProps = {
+type BodyProps = PropsWithChildren<HTMLAttributes<HTMLDivElement>> & {
   collapsed: boolean
 }
 
-type WindowProps = Pick<TitleBarProps, 'title' | 'onClose'>
+type WindowProps = PropsWithChildren<Pick<TitleBarProps, 'title' | 'onClose'>>
 
-const Button = ({ type, className, ...props }: ButtonProps & HTMLAttributes<HTMLButtonElement>) => {
+const Button = ({ type, className, ...props }: ButtonProps) => {
   const size = 'w-[11px] h-[11px]'
   const bg = 'bg-gradient-to-br from-[rgb(192,192,192)] to-[rgb(114,114,114)]'
   const border = 'border border-t-[rgb(68,68,68)] border-l-[rgb(68,68,68)] border-r-[rgb(74,74,74)] border-b-[rgb(74,74,74)]'
@@ -61,7 +61,7 @@ const TitleBar = ({ title, collapsed, onClose, onCollapse }: TitleBarProps) => {
   )
 }
 
-const Body = ({ className, collapsed, children, ...props }: PropsWithChildren<BodyProps> & HTMLAttributes<HTMLDivElement>) => (
+const Body = ({ className, collapsed, children, ...props }: BodyProps) => (
   <div
     className={`${collapsed ? 'hidden' : ''} border-2 border-l border-t-0 border-l-[rgb(45,45,51)] border-[rgb(19,19,19)] ${className ?? ''}`}
     {...props}
@@ -77,7 +77,7 @@ const Body = ({ className, collapsed, children, ...props }: PropsWithChildren<Bo
   </div>
 )
 
-const Window = ({ title, onClose, children }: PropsWithChildren<WindowProps>) => {
+const Window = ({ title, onClose, children }: WindowProps) => {
   const [collapsed, setCollapsed] = useState(false)
 
   return (
