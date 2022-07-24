@@ -5,7 +5,7 @@ type ButtonProps = HTMLAttributes<HTMLButtonElement> & {
   type: 'close' | 'collapse'
 }
 
-type TitleBarProps = {
+type TitleBarProps = HTMLAttributes<HTMLDivElement> & {
   title: string
   collapsed: boolean
   onClose: MouseEventHandler<HTMLButtonElement>
@@ -43,7 +43,7 @@ const Grill = ({ className, style, ...props }: HTMLAttributes<HTMLDivElement>) =
   }} {...props} />
 )
 
-const TitleBar = ({ title, collapsed, onClose, onCollapse }: TitleBarProps) => {
+const TitleBar = ({ title, collapsed, onClose, onCollapse, className, ...props }: TitleBarProps) => {
   const layout = `flex justify-between items-center space-x-[5px] ${collapsed ? 'h-[22px]' : 'h-[20px]'} p-[4px] pb-[5px]`
   const font = 'text-[9px]'
   const bg = 'bg-[rgb(204,204,204)]'
@@ -51,7 +51,7 @@ const TitleBar = ({ title, collapsed, onClose, onCollapse }: TitleBarProps) => {
 
   return (
     // TODO border gradient
-    <div className={`${layout} ${font} ${bg} ${border}`}>
+    <div className={`${layout} ${font} ${bg} ${border} ${className ?? ''}`} {...props}>
       <Button type='close' className='flex-none' onClick={onClose} />
       <Grill className='flex-1' />
       <span className='flex-none cursor-default'>{title}</span>
@@ -84,14 +84,15 @@ const Window = ({ title, onClose, children }: WindowProps) => {
     // TODO dashed copy of outer border when dragging
     // TODO make resizeable
     <Draggable cancel='.no-drag'>
-      <div style={{ width: '200px', height: '200px' }}>
+      <div className='flex flex-col' style={{ width: '200px', height: '200px' }}>
         <TitleBar
+          className='flex-none'
           title={title}
           collapsed={collapsed}
           onClose={onClose}
           onCollapse={() => setCollapsed(c => !c)}
         />
-        <Body className='h-full' collapsed={collapsed}>
+        <Body className='flex-1' collapsed={collapsed}>
           {children}
         </Body>
       </div>
