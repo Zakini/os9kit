@@ -12,6 +12,8 @@ type Size2D = {
   height: number
 }
 
+type Axis = 'horizontal' | 'vertical'
+
 type Direction = 'up' | 'down' | 'left' | 'right'
 
 type TitleBarButtonProps = HTMLAttributes<HTMLButtonElement> & {
@@ -32,7 +34,7 @@ type TitleBarProps = HTMLAttributes<HTMLDivElement> & {
 }
 
 type ScrollBarThumbProps = {
-  axis: 'horizontal' | 'vertical'
+  axis: Axis
   // We don't know the size of the content on first render, so this needs to be nullable
   spaceShown: number | null
   totalSpace: number | null
@@ -45,7 +47,7 @@ type ScrollBarButtonProps = HTMLAttributes<HTMLButtonElement> & {
 }
 
 type ScrollBarProps = Omit<HTMLAttributes<HTMLDivElement>, 'onScroll'> & ScrollBarThumbProps & {
-  onScroll: (direction: Direction, amount: number) => unknown
+  onScroll: (axis: Axis, amount: number) => void
 }
 
 type FrameProps = PropsWithChildren<HTMLAttributes<HTMLDivElement>> & {
@@ -199,13 +201,13 @@ const ScrollBar = ({ axis, spaceShown, totalSpace, position, onScroll, className
             direction={axis === 'horizontal' ? 'left' : 'up'}
             active={scrollable}
             className='flex-none'
-            onClick={() => onScroll(axis === 'horizontal' ? 'left' : 'up', scrollButtonAmount)}
+            onClick={() => onScroll(axis, -scrollButtonAmount)}
           />
           <ScrollBarButton
             direction={axis === 'horizontal' ? 'right' : 'down'}
             active={scrollable}
             className={`flex-none ${dividerSide} ${scrollable ? 'border-[rgb(56,56,56)]' : 'border-[rgb(161,161,161)]'}`}
-            onClick={() => onScroll(axis === 'horizontal' ? 'right' : 'down', scrollButtonAmount)}
+            onClick={() => onScroll(axis, scrollButtonAmount)}
           />
         </div>
       </div>
@@ -245,16 +247,15 @@ const Body = ({ resizable, children, ...props }: BodyProps) => {
     )
   }, [])
 
-  const handleScroll = useCallback<ScrollBarProps['onScroll']>((direction, amount) => {
+  const handleScroll = useCallback<ScrollBarProps['onScroll']>((axis, amount) => {
     if (!contentSize || !displayedSize) return
 
-    const axis = ({ up: 'y', down: 'y', left: 'x', right: 'x' } as const)[direction]
-    const multiplier = ({ up: -1, down: 1, left: -1, right: 1 } as const)[direction]
-    const sizeDimension = ({ up: 'height', down: 'height', left: 'width', right: 'width' } as const)[direction]
+    const axisDimension = ({ horizontal: 'x', vertical: 'y' } as const)[axis]
+    const sizeDimension = ({ horizontal: 'width', vertical: 'height' } as const)[axis]
 
     setScrollPosition(scrollPosition => ({
       ...scrollPosition,
-      [axis]: clamp(scrollPosition[axis] + (amount * multiplier), 0, contentSize[sizeDimension] - displayedSize[sizeDimension])
+      [axisDimension]: clamp(scrollPosition[axisDimension] + amount, 0, contentSize[sizeDimension] - displayedSize[sizeDimension])
     }))
   }, [contentSize, displayedSize])
 
