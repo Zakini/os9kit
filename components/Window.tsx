@@ -69,7 +69,7 @@ type WindowProps = PropsWithChildren<Pick<TitleBarProps, 'title' | 'onClose'>> &
   position: Vector2D
   size: Size2D
   resizable: boolean
-  onMove: (position: Vector2D) => unknown
+  onMove: (position: Vector2D) => void
 }
 
 const TitleBarButton = ({ type, className, ...props }: TitleBarButtonProps) => {
