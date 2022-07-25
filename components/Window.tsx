@@ -88,7 +88,7 @@ const Body = ({ className, collapsed, children, ...props }: BodyProps) => (
     {/* TODO border gradient 217 -> 140, left to right, top to bottom */}
     <div className='h-full border-4 border-t-0 border-[rgb(204,204,204)]'>
       <div className='h-full border border-[rgb(51,51,51)] border-r-[rgb(64,64,64)] border-b-[rgb(59,59,59)]'>
-        <div className='no-drag h-full'>
+        <div className='no-drag h-full overflow-hidden'>
           {children}
         </div>
       </div>
@@ -141,7 +141,7 @@ const Window = ({ title, position, size: { width, height }, onMove, onClose, chi
           onClose={onClose}
           onCollapse={() => setCollapsed(c => !c)}
         />
-        <Body className='flex-1' collapsed={collapsed}>
+        <Body className='flex-1 min-h-0' collapsed={collapsed}>
           {children}
         </Body>
         {dragging
