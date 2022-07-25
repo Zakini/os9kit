@@ -1,4 +1,4 @@
-import { HTMLAttributes, MouseEventHandler, PropsWithChildren, RefCallback, useCallback, useEffect, useState } from 'react'
+import { HTMLAttributes, MouseEventHandler, PropsWithChildren, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { DraggableCore as Draggable } from 'react-draggable'
 import { usePrevious } from '../utils'
 
@@ -220,16 +220,25 @@ const Body = ({ resizable, children, ...props }: BodyProps) => {
   const [scrollPosition, setScrollPosition] = useState<Vector2D>({ x: 0, y: 0 })
   const [contentSize, setContentSize] = useState<Size2D|null>(null)
   const [displayedSize, setDisplayedSize] = useState<Size2D|null>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
 
-  const getContentRef: RefCallback<HTMLDivElement> = useCallback(contentNode => {
-    setContentSize(contentNode ? { width: contentNode?.scrollWidth, height: contentNode?.scrollHeight } : null)
-    setDisplayedSize(contentNode ? { width: contentNode?.clientWidth, height: contentNode?.clientHeight } : null)
+  useLayoutEffect(() => {
+    setContentSize(
+      contentRef.current
+        ? { width: contentRef.current.scrollWidth, height: contentRef.current.scrollHeight }
+        : null
+    )
+    setDisplayedSize(
+      contentRef.current
+        ? { width: contentRef.current.clientWidth, height: contentRef.current.clientHeight }
+        : null
+    )
   }, [])
 
   return (
     <Frame {...props}>
       <div className={`no-drag h-full grid ${border} border-[rgb(51,51,51)] border-r-[rgb(62,62,62)] border-b-[rgb(59,59,59)]`} style={{ gridTemplateColumns: gridTemplate, gridTemplateRows: gridTemplate }}>
-        <div ref={getContentRef} className='overflow-hidden'>
+        <div ref={contentRef} className='overflow-hidden'>
           {children}
         </div>
         {resizable
