@@ -12,7 +12,7 @@ type Size2D = {
   height: number
 }
 
-type Axis = 'horizontal' | 'vertical'
+type Axis = 'x' | 'y'
 
 type Direction = 'up' | 'down' | 'left' | 'right'
 
@@ -128,10 +128,10 @@ const Frame = ({ className, collapsed, children, ...props }: FrameProps) => (
 
 const ScrollBarThumb = ({ axis, spaceShown, totalSpace, position }: ScrollBarThumbProps) => {
   const displayFraction = spaceShown === null || totalSpace === null ? null : spaceShown / totalSpace
-  const thumbSpanDirection = axis === 'horizontal' ? 'h-full' : 'w-full'
-  const thumbFillDirection = axis === 'horizontal' ? 'width' : 'height'
-  const thumbMoveDirection = axis === 'horizontal' ? 'left' : 'top'
-  const thumbBorderEnds = axis === 'horizontal' ? 'border-x' : 'border-y'
+  const thumbSpanDirection = axis === 'x' ? 'h-full' : 'w-full'
+  const thumbFillDirection = axis === 'x' ? 'width' : 'height'
+  const thumbMoveDirection = axis === 'x' ? 'left' : 'top'
+  const thumbBorderEnds = axis === 'x' ? 'border-x' : 'border-y'
   const thumbSize = displayFraction === null ? '0' : `calc(${displayFraction * 100}% + 2px)`
 
   return (
@@ -141,10 +141,10 @@ const ScrollBarThumb = ({ axis, spaceShown, totalSpace, position }: ScrollBarThu
         [thumbFillDirection]: thumbSize,
         // TODO bounds of thumb need to be 1px beyond ScrollBar limits to prevent double border
         [thumbMoveDirection]: `calc((100% - ${thumbSize} + 2px) * ${position} - 1px)`,
-        boxShadow: `${axis === 'horizontal' ? '1px 0' : '0 1px'} 2px rgb(106,106,106)`
+        boxShadow: `${axis === 'x' ? '1px 0' : '0 1px'} 2px rgb(106,106,106)`
       }}
     >
-      <Grill className={`h-[8px] w-[8px] ${axis === 'horizontal' ? '-rotate-90' : ''}`} colourA='rgb(166,166,229)' colourB='rgb(89,89,179)' />
+      <Grill className={`h-[8px] w-[8px] ${axis === 'x' ? '-rotate-90' : ''}`} colourA='rgb(166,166,229)' colourB='rgb(89,89,179)' />
     </div>
   )
 }
@@ -171,9 +171,9 @@ const ScrollBarButton = ({ direction, active, className, ...props }: ScrollBarBu
 }
 
 const ScrollBar = ({ axis, spaceShown, totalSpace, position, onScroll, className, ...props }: ScrollBarProps) => {
-  const borderSides = axis === 'horizontal' ? 'border-y' : 'border-x'
-  const flexDirection = axis === 'horizontal' ? 'flex-row' : 'flex-col'
-  const dividerSide = axis === 'horizontal' ? 'border-l' : 'border-t'
+  const borderSides = axis === 'x' ? 'border-y' : 'border-x'
+  const flexDirection = axis === 'x' ? 'flex-row' : 'flex-col'
+  const dividerSide = axis === 'x' ? 'border-l' : 'border-t'
 
   const scrollable = spaceShown !== null && totalSpace !== null && spaceShown < totalSpace
   const thumbPosition = spaceShown === null || totalSpace === null
@@ -198,13 +198,13 @@ const ScrollBar = ({ axis, spaceShown, totalSpace, position, onScroll, className
         </div>
         <div className={`z-10 flex-none flex ${flexDirection} ${dividerSide} ${scrollable ? 'border-[rgb(53,53,53)]' : 'border-[rgb(123,123,123)]'}`}>
           <ScrollBarButton
-            direction={axis === 'horizontal' ? 'left' : 'up'}
+            direction={axis === 'x' ? 'left' : 'up'}
             active={scrollable}
             className='flex-none'
             onClick={() => onScroll(axis, -scrollButtonAmount)}
           />
           <ScrollBarButton
-            direction={axis === 'horizontal' ? 'right' : 'down'}
+            direction={axis === 'x' ? 'right' : 'down'}
             active={scrollable}
             className={`flex-none ${dividerSide} ${scrollable ? 'border-[rgb(56,56,56)]' : 'border-[rgb(161,161,161)]'}`}
             onClick={() => onScroll(axis, scrollButtonAmount)}
@@ -250,12 +250,11 @@ const Body = ({ resizable, children, ...props }: BodyProps) => {
   const handleScroll = useCallback<ScrollBarProps['onScroll']>((axis, amount) => {
     if (!contentSize || !displayedSize) return
 
-    const axisDimension = ({ horizontal: 'x', vertical: 'y' } as const)[axis]
-    const sizeDimension = ({ horizontal: 'width', vertical: 'height' } as const)[axis]
+    const sizeDimension = ({ x: 'width', y: 'height' } as const)[axis]
 
     setScrollPosition(scrollPosition => ({
       ...scrollPosition,
-      [axisDimension]: clamp(scrollPosition[axisDimension] + amount, 0, contentSize[sizeDimension] - displayedSize[sizeDimension])
+      [axis]: clamp(scrollPosition[axis] + amount, 0, contentSize[sizeDimension] - displayedSize[sizeDimension])
     }))
   }, [contentSize, displayedSize])
 
@@ -275,7 +274,7 @@ const Body = ({ resizable, children, ...props }: BodyProps) => {
         {resizable
           ? <>
             <ScrollBar
-              axis='vertical'
+              axis='y'
               spaceShown={displayedSize?.height ?? null}
               totalSpace={contentSize?.height ?? null}
               position={scrollPosition.y}
@@ -283,7 +282,7 @@ const Body = ({ resizable, children, ...props }: BodyProps) => {
               onScroll={handleScroll}
             />
             <ScrollBar
-              axis='horizontal'
+              axis='x'
               spaceShown={displayedSize?.width ?? null}
               totalSpace={contentSize?.width ?? null}
               position={scrollPosition.x}
