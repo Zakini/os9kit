@@ -119,6 +119,7 @@ const Window = ({ title, position, size: { width, height }, onMove, onClose, chi
   }, [dragging, previousDragging, position, pendingOffset, onMove])
 
   return (
+    // TODO unfocused style
     // TODO make resizeable
     <Draggable
       cancel='.no-drag'
