@@ -8,7 +8,8 @@ export default {
   args: {
     title: 'Example Window',
     position: { x: 0, y: 0 },
-    size: { width: 200, height: 200 }
+    size: { width: 200, height: 200 },
+    resizable: false
   }
 } as ComponentMeta<typeof Window>
 
@@ -46,4 +47,9 @@ const Template: ComponentStory<typeof Window> = ({ position: inputPosition, ...a
   )
 }
 
-export const Default = Template.bind({})
+export const Basic = Template.bind({})
+
+export const Resizable = Template.bind({})
+Resizable.args = {
+  resizable: true
+}
