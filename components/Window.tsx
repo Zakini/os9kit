@@ -1,6 +1,6 @@
-import { HTMLAttributes, MouseEventHandler, PropsWithChildren, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { HTMLAttributes, MouseEventHandler, PropsWithChildren, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { DraggableCore as Draggable } from 'react-draggable'
-import { usePrevious } from '../utils'
+import { clamp, usePrevious } from '../utils'
 
 type Vector2D = {
   x: number
@@ -11,6 +11,8 @@ type Size2D = {
   width: number
   height: number
 }
+
+type Direction = 'up' | 'down' | 'left' | 'right'
 
 type TitleBarButtonProps = HTMLAttributes<HTMLButtonElement> & {
   type: 'close' | 'collapse'
@@ -38,11 +40,13 @@ type ScrollBarThumbProps = {
 }
 
 type ScrollBarButtonProps = HTMLAttributes<HTMLButtonElement> & {
-  direction: 'up' | 'down' | 'left' | 'right'
+  direction: Direction
   active: boolean
 }
 
-type ScrollBarProps = HTMLAttributes<HTMLDivElement> & ScrollBarThumbProps
+type ScrollBarProps = Omit<HTMLAttributes<HTMLDivElement>, 'onScroll'> & ScrollBarThumbProps & {
+  onScroll: (direction: Direction, amount: number) => unknown
+}
 
 type FrameProps = PropsWithChildren<HTMLAttributes<HTMLDivElement>> & {
   collapsed: boolean
@@ -164,13 +168,17 @@ const ScrollBarButton = ({ direction, active, className, ...props }: ScrollBarBu
   )
 }
 
-const ScrollBar = ({ axis, spaceShown, totalSpace, position, className, ...props }: ScrollBarProps) => {
+const ScrollBar = ({ axis, spaceShown, totalSpace, position, onScroll, className, ...props }: ScrollBarProps) => {
   const borderSides = axis === 'horizontal' ? 'border-y' : 'border-x'
   const flexDirection = axis === 'horizontal' ? 'flex-row' : 'flex-col'
   const dividerSide = axis === 'horizontal' ? 'border-l' : 'border-t'
 
   const scrollable = spaceShown !== null && totalSpace !== null && spaceShown < totalSpace
-  const thumbPosition = totalSpace === null ? 0 : position / totalSpace
+  const thumbPosition = spaceShown === null || totalSpace === null
+    ? 0
+    : position / (totalSpace - spaceShown)
+
+  const scrollButtonAmount = 25
 
   return (
     <div className={`${borderSides} border-[rgb(62,62,62)] ${className ?? ''}`} {...props}>
@@ -191,11 +199,13 @@ const ScrollBar = ({ axis, spaceShown, totalSpace, position, className, ...props
             direction={axis === 'horizontal' ? 'left' : 'up'}
             active={scrollable}
             className='flex-none'
+            onClick={() => onScroll(axis === 'horizontal' ? 'left' : 'up', scrollButtonAmount)}
           />
           <ScrollBarButton
             direction={axis === 'horizontal' ? 'right' : 'down'}
             active={scrollable}
             className={`flex-none ${dividerSide} ${scrollable ? 'border-[rgb(56,56,56)]' : 'border-[rgb(161,161,161)]'}`}
+            onClick={() => onScroll(axis === 'horizontal' ? 'right' : 'down', scrollButtonAmount)}
           />
         </div>
       </div>
@@ -235,6 +245,26 @@ const Body = ({ resizable, children, ...props }: BodyProps) => {
     )
   }, [])
 
+  const handleScroll = useCallback<ScrollBarProps['onScroll']>((direction, amount) => {
+    if (!contentSize || !displayedSize) return
+
+    const axis = ({ up: 'y', down: 'y', left: 'x', right: 'x' } as const)[direction]
+    const multiplier = ({ up: -1, down: 1, left: -1, right: 1 } as const)[direction]
+    const sizeDimension = ({ up: 'height', down: 'height', left: 'width', right: 'width' } as const)[direction]
+
+    setScrollPosition(scrollPosition => ({
+      ...scrollPosition,
+      [axis]: clamp(scrollPosition[axis] + (amount * multiplier), 0, contentSize[sizeDimension] - displayedSize[sizeDimension])
+    }))
+  }, [contentSize, displayedSize])
+
+  useEffect(() => {
+    if (!contentRef.current) return
+
+    contentRef.current.scrollLeft = scrollPosition.x
+    contentRef.current.scrollTop = scrollPosition.y
+  }, [scrollPosition])
+
   return (
     <Frame {...props}>
       <div className={`no-drag h-full grid ${border} border-[rgb(51,51,51)] border-r-[rgb(62,62,62)] border-b-[rgb(59,59,59)]`} style={{ gridTemplateColumns: gridTemplate, gridTemplateRows: gridTemplate }}>
@@ -249,6 +279,7 @@ const Body = ({ resizable, children, ...props }: BodyProps) => {
               totalSpace={contentSize?.height ?? null}
               position={scrollPosition.y}
               className='flex-none'
+              onScroll={handleScroll}
             />
             <ScrollBar
               axis='horizontal'
@@ -256,6 +287,7 @@ const Body = ({ resizable, children, ...props }: BodyProps) => {
               totalSpace={contentSize?.width ?? null}
               position={scrollPosition.x}
               className='flex-none'
+              onScroll={handleScroll}
             />
             <DragHandle />
           </>

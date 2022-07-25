@@ -9,3 +9,5 @@ export const usePrevious = <T>(value: T) => {
 
   return ref.current
 }
+
+export const clamp = (n: number, min: number, max: number): number => Math.min(Math.max(min, n), max)
