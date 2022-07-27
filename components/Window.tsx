@@ -130,6 +130,8 @@ const Frame = ({ className, collapsed, children, ...props }: FrameProps) => (
 )
 
 const ScrollBarThumb = ({ axis, spaceShown, totalSpace, position, onDrag }: ScrollBarThumbProps) => {
+  const [dragging, setDragging] = useState(false)
+
   const displayFraction = spaceShown === null || totalSpace === null ? null : spaceShown / totalSpace
   const thumbSpanDirection = axis === 'x' ? 'h-full' : 'w-full'
   const thumbFillDirection = axis === 'x' ? 'width' : 'height'
@@ -137,10 +139,18 @@ const ScrollBarThumb = ({ axis, spaceShown, totalSpace, position, onDrag }: Scro
   const thumbBorderEnds = axis === 'x' ? 'border-x' : 'border-y'
   const thumbSize = displayFraction === null ? '0' : `calc(${displayFraction * 100}% + 2px)`
 
+  const layout = `absolute top-0 flex place-content-center place-items-center ${thumbSpanDirection}`
+  const background = dragging ? 'bg-[rgb(102,102,197)]' : 'bg-[rgb(153,153,255)]'
+  const borders = `${thumbBorderEnds} ${dragging ? 'border-[rgb(21,21,33)]' : 'border-[rgb(28,28,40)]'}`
+
   return (
-    <Draggable onDrag={(e, { [axis === 'x' ? 'deltaX' : 'deltaY']: amount }) => onDrag(amount)}>
+    <Draggable
+      onStart={() => setDragging(true)}
+      onDrag={(e, { [axis === 'x' ? 'deltaX' : 'deltaY']: amount }) => onDrag(amount)}
+      onStop={() => setDragging(false)}
+    >
       <div
-        className={`absolute flex place-content-center place-items-center top-0 bg-[rgb(153,153,255)] ${thumbSpanDirection} ${thumbBorderEnds} border-[rgb(28,28,40)]`}
+        className={`${layout} ${background} ${borders}`}
         style={{
           [thumbFillDirection]: thumbSize,
           // TODO bounds of thumb need to be 1px beyond ScrollBar limits to prevent double border
@@ -148,7 +158,11 @@ const ScrollBarThumb = ({ axis, spaceShown, totalSpace, position, onDrag }: Scro
           boxShadow: `${axis === 'x' ? '1px 0' : '0 1px'} 2px rgb(106,106,106)`
         }}
       >
-        <Grill className={`h-[8px] w-[8px] ${axis === 'x' ? '-rotate-90' : ''}`} colourA='rgb(166,166,229)' colourB='rgb(89,89,179)' />
+        <Grill
+          className={`h-[8px] w-[8px] ${axis === 'x' ? '-rotate-90' : ''}`}
+          colourA={dragging ? 'rgb(115,115,207)' : 'rgb(166,166,229)'}
+          colourB={dragging ? 'rgb(38,38,123)' : 'rgb(89,89,179)'}
+        />
       </div>
     </Draggable>
   )
