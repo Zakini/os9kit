@@ -181,7 +181,7 @@ const ScrollBarButton = ({ direction, active, className, ...props }: ScrollBarBu
 
   return (
     <button
-      className={`h-[14px] w-[14px] text-[8px] ${colour} ${className ?? ''}`}
+      className={`h-[14px] w-[14px] text-[8px] ${colour} cursor-default ${className ?? ''}`}
       {...props}
     >
       {arrows[direction]}
