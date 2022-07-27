@@ -153,7 +153,7 @@ const ScrollBarThumb = ({ axis, spaceShown, totalSpace, position, onDrag }: Scro
         className={`${layout} ${background} ${borders}`}
         style={{
           [thumbFillDirection]: thumbSize,
-          // TODO bounds of thumb need to be 1px beyond ScrollBar limits to prevent double border
+          // bounds of thumb need to be 1px beyond ScrollBar limits to prevent double border
           [thumbMoveDirection]: `calc((100% - ${thumbSize} + 2px) * ${position} - 1px)`,
           boxShadow: `${axis === 'x' ? '1px 0' : '0 1px'} 2px rgb(106,106,106)`
         }}
