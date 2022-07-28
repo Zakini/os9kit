@@ -1,6 +1,8 @@
-import { HTMLAttributes, MouseEventHandler, PropsWithChildren, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { forwardRef, HTMLAttributes, MouseEventHandler, PropsWithChildren, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { DraggableCore as Draggable } from 'react-draggable'
+import { Resizable } from 'react-resizable'
 import { clamp, usePrevious } from '../utils'
+import 'react-resizable/css/styles.css'
 
 type Vector2D = {
   x: number
@@ -70,6 +72,7 @@ type WindowProps = PropsWithChildren<Pick<TitleBarProps, 'title' | 'onClose'>> &
   size: Size2D
   resizable: boolean
   onMove: (position: Vector2D) => void
+  onResize: (size: Size2D) => void
 }
 
 const TitleBarButton = ({ type, className, ...props }: TitleBarButtonProps) => {
@@ -239,15 +242,15 @@ const ScrollBar = ({ axis, spaceShown, totalSpace, position, onScroll, className
   )
 }
 
-const DragHandle = () => {
+const DragHandle = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(function DragHandle ({ className, ...props }, ref) {
   return (
-    <div className='border-l border-t border-[rgb(62,62,62)]'>
-      <div className='absolute h-[21px] w-[21px] border-b-2 border-r-2 border-[rgb(19,19,19)] bg-[rgb(204,204,204)]'>
+    <div ref={ref} className={`h-[16px] w-[16px] border-l border-t border-[rgb(62,62,62)] ${className ?? ''}`} {...props}>
+      <div className='h-[21px] w-[21px] border-b-2 border-r-2 border-[rgb(19,19,19)] bg-[rgb(204,204,204)]'>
         <Grill spacing={3} className='h-[10px] w-[10px] -rotate-45 translate-x-[4px] translate-y-[4px] border-t border-[rgb(231,231,231)]' />
       </div>
     </div>
   )
-}
+})
 
 const Body = ({ resizable, children, ...props }: BodyProps) => {
   const gridTemplate = resizable ? '1fr 16px' : '1fr'
@@ -313,7 +316,6 @@ const Body = ({ resizable, children, ...props }: BodyProps) => {
               className='flex-none'
               onScroll={handleScroll}
             />
-            <DragHandle />
           </>
           : null}
       </div>
@@ -330,7 +332,7 @@ const Ghost = ({ position, className, style, ...props }: GhostProps) => (
   />
 )
 
-const Window = ({ title, position, size: { width, height }, resizable, onMove, onClose, children }: WindowProps) => {
+const Window = ({ title, position, size: { height, width }, resizable, onMove, onResize, onClose, children }: WindowProps) => {
   const [collapsed, setCollapsed] = useState(false)
   const [dragging, setDragging] = useState(false)
   const previousDragging = usePrevious(dragging)
@@ -345,35 +347,43 @@ const Window = ({ title, position, size: { width, height }, resizable, onMove, o
 
   return (
     // TODO unfocused style
-    // TODO make resizeable
     <Draggable
       cancel='.no-drag'
       onStart={() => setDragging(true)}
       onDrag={(e, { deltaX, deltaY }) => setPendingOffset(({ x, y }) => ({ x: x + deltaX, y: y + deltaY }))}
       onStop={() => setDragging(false)}
     >
-      <div
-        className='relative flex flex-col'
-        style={{
-          width: `${width}px`,
-          height: collapsed ? 'inherit' : `${height}px`,
-          transform: `translate(${position.x}px, ${position.y}px)`
-        }}
+      <Resizable
+        height={height}
+        width={width}
+        handle={(_, ref) => <DragHandle ref={ref} className='no-drag absolute right-[6px] bottom-[6px]' />}
+        resizeHandles={resizable ? ['se'] : []}
+        onResize={(_, { size }) => onResize(size)}
       >
-        <TitleBar
-          className='flex-none'
-          title={title}
-          collapsed={collapsed}
-          onClose={onClose}
-          onCollapse={() => setCollapsed(c => !c)}
-        />
-        <Body className='flex-1 min-h-0' resizable={resizable} collapsed={collapsed}>
-          {children}
-        </Body>
-        {dragging
-          ? <Ghost className='absolute top-0 h-full w-full' position={pendingOffset} />
-          : null}
-      </div>
+        <div
+          className='relative flex flex-col'
+          style={{
+            width: `${width}px`,
+            height: collapsed ? 'inherit' : `${height}px`,
+            transform: `translate(${position.x}px, ${position.y}px)`
+          }}
+        >
+          <TitleBar
+            className='flex-none'
+            title={title}
+            collapsed={collapsed}
+            onClose={onClose}
+            onCollapse={() => setCollapsed(c => !c)}
+          />
+          <Body className='flex-1 min-h-0' resizable={resizable} collapsed={collapsed}>
+            {children}
+          </Body>
+          {/* TODO add resize ghost */}
+          {dragging
+            ? <Ghost className='absolute top-0 h-full w-full' position={pendingOffset} />
+            : null}
+        </div>
+      </Resizable>
     </Draggable>
   )
 }

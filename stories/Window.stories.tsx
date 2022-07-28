@@ -13,18 +13,25 @@ export default {
   }
 } as ComponentMeta<typeof Window>
 
-const Template: ComponentStory<typeof Window> = ({ position: inputPosition, ...args }) => {
+const Template: ComponentStory<typeof Window> = ({ position: inputPosition, size: inputSize, ...args }) => {
   const [position, setPosition] = useState(inputPosition)
+  const [size, setSize] = useState(inputSize)
 
   useEffect(() => {
     setPosition(inputPosition)
   }, [inputPosition])
 
+  useEffect(() => {
+    setSize(inputSize)
+  }, [inputSize])
+
   return (
     <Window
       position={position}
+      size={size}
       {...args}
       onMove={setPosition}
+      onResize={setSize}
       onClose={() => alert('Window should close')}
     >
       <div
