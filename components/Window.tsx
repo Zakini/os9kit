@@ -357,7 +357,7 @@ const Window = ({ title, position, size: { height, width }, resizable, onMove, o
         height={height}
         width={width}
         handle={(_, ref) => <DragHandle ref={ref} className='no-drag absolute right-[6px] bottom-[6px]' />}
-        resizeHandles={resizable ? ['se'] : []}
+        resizeHandles={resizable && !collapsed ? ['se'] : []}
         onResize={(_, { size }) => onResize(size)}
       >
         <div
