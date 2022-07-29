@@ -12,6 +12,7 @@ import { Size2D, Vector2D } from './types'
 type WindowProps = PropsWithChildren<Pick<TitleBarProps, 'title' | 'onClose'>> & {
   position: Vector2D
   size: Size2D
+  optimalSize: Size2D
   resizable: boolean
   focused: boolean
   onMove: (position: Vector2D) => void
@@ -28,7 +29,7 @@ const DragHandle = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(fu
   )
 })
 
-const Window = ({ title, position, size, resizable, focused, onMove, onResize, onClose, onFocus, onBlur, children }: WindowProps) => {
+const Window = ({ title, position, size, optimalSize, resizable, focused, onMove, onResize, onClose, onFocus, onBlur, children }: WindowProps) => {
   const [collapsed, setCollapsed] = useState(false)
   const [dragging, setDragging] = useState(false)
   const previousDragging = usePrevious(dragging)
@@ -103,8 +104,10 @@ const Window = ({ title, position, size, resizable, focused, onMove, onResize, o
             title={title}
             collapsed={collapsed}
             focused={focused}
+            resizable={resizable}
             onClose={onClose}
             onCollapse={() => setCollapsed(c => !c)}
+            onOptimise={() => onResize(optimalSize)}
           />
           <Body className='flex-1 min-h-0' resizable={resizable} collapsed={collapsed} focused={focused}>
             {children}

@@ -8,6 +8,7 @@ export default {
     title: 'Example Window',
     position: { x: 0, y: 0 },
     size: { width: 200, height: 200 },
+    optimalSize: { width: 300, height: 150 },
     resizable: false,
     focused: true
   }
