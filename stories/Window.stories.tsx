@@ -1,6 +1,6 @@
+import { useArgs } from '@storybook/client-api'
 import { ComponentMeta, ComponentStory } from '@storybook/react'
 import Window from '../components/Window'
-import { useStatefulProp } from '../utils'
 
 export default {
   title: 'Window',
@@ -14,22 +14,17 @@ export default {
   }
 } as ComponentMeta<typeof Window>
 
-const Template: ComponentStory<typeof Window> = ({ position: inputPosition, size: inputSize, focused: inputFocused, ...args }) => {
-  const [position, setPosition] = useStatefulProp(inputPosition)
-  const [size, setSize] = useStatefulProp(inputSize)
-  const [focused, setFocused] = useStatefulProp(inputFocused)
+const Template: ComponentStory<typeof Window> = (args) => {
+  const [_, updateArgs] = useArgs()
 
   return (
     <Window
-      position={position}
-      size={size}
-      focused={focused}
       {...args}
-      onMove={setPosition}
-      onResize={setSize}
+      onMove={position => updateArgs({ position })}
+      onResize={size => updateArgs({ size })}
       onClose={() => alert('Window should close')}
-      onFocus={() => setFocused(true)}
-      onBlur={() => setFocused(false)}
+      onFocus={() => updateArgs({ focused: true })}
+      onBlur={() => updateArgs({ focused: false })}
     >
       <div
         className='bg-white'
