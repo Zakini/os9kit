@@ -2,6 +2,7 @@ import { forwardRef, HTMLAttributes, MouseEventHandler, PropsWithChildren, useCa
 import { DraggableCore as Draggable } from 'react-draggable'
 import { Resizable } from 'react-resizable'
 import { useResizeDetector } from 'react-resize-detector'
+import { useLongPress } from 'use-long-press'
 import { clamp, usePrevious } from '../utils'
 import 'react-resizable/css/styles.css'
 
@@ -54,6 +55,7 @@ type ScrollBarThumbProps = {
 type ScrollBarButtonProps = HTMLAttributes<HTMLButtonElement> & {
   direction: Direction
   active: boolean
+  onTrigger: () => void
 }
 
 type ScrollBarProps = Omit<HTMLAttributes<HTMLDivElement>, 'onScroll'>
@@ -206,7 +208,23 @@ const ScrollBarThumb = ({ axis, spaceShown, totalSpace, position, onDrag }: Scro
   )
 }
 
-const ScrollBarButton = ({ direction, active, className, ...props }: ScrollBarButtonProps) => {
+const ScrollBarButton = ({ direction, active, onTrigger, className, ...props }: ScrollBarButtonProps) => {
+  const [triggered, setTriggered] = useState(false)
+
+  const makeHoldHandlers = useLongPress(() => setTriggered(true), {
+    threshold: 150,
+    onStart: onTrigger,
+    onFinish: () => setTriggered(false)
+  })
+
+  useEffect(() => {
+    if (!triggered) return
+
+    const interval = setInterval(onTrigger, 50)
+
+    return () => clearInterval(interval)
+  }, [triggered, onTrigger])
+
   // TODO more accurate arrows
   const arrows = {
     up: '▲',
@@ -220,6 +238,7 @@ const ScrollBarButton = ({ direction, active, className, ...props }: ScrollBarBu
   return (
     <button
       className={`h-[14px] w-[14px] text-[8px] ${colour} cursor-default ${className ?? ''}`}
+      {...makeHoldHandlers()}
       {...props}
     >
       {arrows[direction]}
@@ -237,7 +256,7 @@ const ScrollBar = ({ axis, spaceShown, totalSpace, position, focused, onScroll, 
     ? 0
     : clamp(position / (totalSpace - spaceShown), 0, 1)
 
-  const scrollButtonAmount = 25
+  const scrollButtonAmount = 15
 
   return (
     <div className={`${borderSides} ${focused ? 'border-[rgb(62,62,62)]' : 'border-[rgb(126,126,126)]'} ${className ?? ''}`} {...props}>
@@ -260,13 +279,13 @@ const ScrollBar = ({ axis, spaceShown, totalSpace, position, focused, onScroll, 
               direction={axis === 'x' ? 'left' : 'up'}
               active={scrollable}
               className='flex-none'
-              onClick={() => onScroll(axis, -scrollButtonAmount)}
+              onTrigger={() => onScroll(axis, -scrollButtonAmount)}
             />
             <ScrollBarButton
               direction={axis === 'x' ? 'right' : 'down'}
               active={scrollable}
               className={`flex-none ${dividerSide} ${scrollable ? 'border-[rgb(56,56,56)]' : 'border-[rgb(161,161,161)]'}`}
-              onClick={() => onScroll(axis, scrollButtonAmount)}
+              onTrigger={() => onScroll(axis, scrollButtonAmount)}
             />
           </div>
           : null}
