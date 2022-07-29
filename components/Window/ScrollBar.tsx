@@ -146,7 +146,6 @@ const ScrollBar = ({ axis, spaceShown, totalSpace, position, focused, onScroll, 
         </div>
         {focused
           ? <div className={`z-10 flex-none flex ${flexDirection} ${dividerSide} ${scrollable ? 'border-[rgb(53,53,53)]' : 'border-[rgb(123,123,123)]'}`}>
-            {/* TODO click and hold to keep scrolling */}
             <ScrollBarButton
               direction={axis === 'x' ? 'left' : 'up'}
               active={scrollable}
