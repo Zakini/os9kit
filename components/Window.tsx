@@ -409,6 +409,7 @@ const Window = ({ title, position, size, resizable, focused, onMove, onResize, o
   }, [resizing, previousResizing, pendingSize, onResize])
 
   return (
+    // TODO adjust scrollbar thumb size as window size changes
     <Draggable
       cancel='.no-drag'
       onStart={() => setDragging(true)}
