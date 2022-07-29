@@ -1,7 +1,6 @@
-import { useEffect } from '@storybook/addons'
 import { ComponentMeta, ComponentStory } from '@storybook/react'
-import { useState } from 'react'
 import Window from '../components/Window'
+import { useStatefulProp } from '../utils'
 
 export default {
   title: 'Window',
@@ -14,26 +13,22 @@ export default {
   }
 } as ComponentMeta<typeof Window>
 
-const Template: ComponentStory<typeof Window> = ({ position: inputPosition, size: inputSize, ...args }) => {
-  const [position, setPosition] = useState(inputPosition)
-  const [size, setSize] = useState(inputSize)
-
-  useEffect(() => {
-    setPosition(inputPosition)
-  }, [inputPosition])
-
-  useEffect(() => {
-    setSize(inputSize)
-  }, [inputSize])
+const Template: ComponentStory<typeof Window> = ({ position: inputPosition, size: inputSize, focused: inputFocused, ...args }) => {
+  const [position, setPosition] = useStatefulProp(inputPosition)
+  const [size, setSize] = useStatefulProp(inputSize)
+  const [focused, setFocused] = useStatefulProp(inputFocused)
 
   return (
     <Window
       position={position}
       size={size}
+      focused={focused}
       {...args}
       onMove={setPosition}
       onResize={setSize}
       onClose={() => alert('Window should close')}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
     >
       <div
         className='bg-white'

@@ -84,6 +84,8 @@ type WindowProps = PropsWithChildren<Pick<TitleBarProps, 'title' | 'onClose'>> &
   focused: boolean
   onMove: (position: Vector2D) => void
   onResize: (size: Size2D) => void
+  onFocus: () => void
+  onBlur: () => void
 }
 
 const TitleBarButton = ({ type, className, ...props }: TitleBarButtonProps) => {
@@ -380,7 +382,7 @@ const Ghost = ({ type, position = { x: 0, y: 0 }, className, style, ...props }: 
   </div>
 )
 
-const Window = ({ title, position, size, resizable, focused, onMove, onResize, onClose, children }: WindowProps) => {
+const Window = ({ title, position, size, resizable, focused, onMove, onResize, onClose, onFocus, onBlur, children }: WindowProps) => {
   const [collapsed, setCollapsed] = useState(false)
   const [dragging, setDragging] = useState(false)
   const previousDragging = usePrevious(dragging)
@@ -388,6 +390,7 @@ const Window = ({ title, position, size, resizable, focused, onMove, onResize, o
   const [resizing, setResizing] = useState(false)
   const previousResizing = usePrevious(resizing)
   const [pendingSize, setPendingSize] = useState(size)
+  const ref = useRef<HTMLDivElement>(null)
 
   const { height, width } = size
 
@@ -407,6 +410,17 @@ const Window = ({ title, position, size, resizable, focused, onMove, onResize, o
 
     onResize(pendingSize)
   }, [resizing, previousResizing, pendingSize, onResize])
+
+  useEffect(() => {
+    const handle: Parameters<typeof document.addEventListener>[1] = event => {
+      if (!(event.target instanceof Node) || !ref.current?.contains(event.target)) {
+        onBlur()
+      }
+    }
+
+    document.addEventListener('mousedown', handle)
+    return () => document.removeEventListener('mousedown', handle)
+  }, [onBlur])
 
   return (
     // TODO adjust scrollbar thumb size as window size changes
@@ -430,12 +444,14 @@ const Window = ({ title, position, size, resizable, focused, onMove, onResize, o
         onResizeStop={() => setResizing(false)}
       >
         <div
+          ref={ref}
           className='relative flex flex-col'
           style={{
             width: `${width}px`,
             height: collapsed ? 'inherit' : `${height}px`,
             transform: `translate(${position.x}px, ${position.y}px)`
           }}
+          onMouseDownCapture={() => onFocus()}
         >
           <TitleBar
             className='flex-none'
