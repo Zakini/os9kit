@@ -64,7 +64,8 @@ type BodyProps = FrameProps & {
 }
 
 type GhostProps = HTMLAttributes<HTMLDivElement> & {
-  position: Vector2D
+  type: 'move' | 'resize'
+  position?: Vector2D
 }
 
 type WindowProps = PropsWithChildren<Pick<TitleBarProps, 'title' | 'onClose'>> & {
@@ -323,20 +324,38 @@ const Body = ({ resizable, children, ...props }: BodyProps) => {
   )
 }
 
-const Ghost = ({ position, className, style, ...props }: GhostProps) => (
+const Ghost = ({ type, position = { x: 0, y: 0 }, className, style, ...props }: GhostProps) => (
   <div
     // TODO border with 1px wide black and white stripes
-    className={`border-2 border-black border-dotted ${className ?? ''}`}
+    className={`z-10 absolute top-0 h-full w-full border border-black border-dotted ${type === 'resize' ? 'p-[5px] pt-[19px]' : ''} ${className ?? ''}`}
     style={{ transform: `translate(${position.x}px, ${position.y}px)`, ...style }}
     {...props}
-  />
+  >
+    {type === 'resize'
+      ? (
+        <div
+          className='grid h-full w-full border-t border-l border-black border-dotted'
+          style={{ gridTemplateColumns: 'auto 16px', gridTemplateRows: 'auto 16px' }}
+        >
+          <div className='col-start-2 h-full border-r border-black border-dotted' />
+          <div className='row-start-2 h-full border-b border-black border-dotted' />
+          <div className='col-start-2 row-start-2 h-full border-t border-l border-black border-dotted' />
+        </div>
+        )
+      : null}
+  </div>
 )
 
-const Window = ({ title, position, size: { height, width }, resizable, onMove, onResize, onClose, children }: WindowProps) => {
+const Window = ({ title, position, size, resizable, onMove, onResize, onClose, children }: WindowProps) => {
   const [collapsed, setCollapsed] = useState(false)
   const [dragging, setDragging] = useState(false)
   const previousDragging = usePrevious(dragging)
   const [pendingOffset, setPendingOffset] = useState({ x: 0, y: 0 })
+  const [resizing, setResizing] = useState(false)
+  const previousResizing = usePrevious(resizing)
+  const [pendingSize, setPendingSize] = useState(size)
+
+  const { height, width } = size
 
   useEffect(() => {
     if (dragging || !previousDragging) return
@@ -344,6 +363,16 @@ const Window = ({ title, position, size: { height, width }, resizable, onMove, o
     onMove({ x: position.x + pendingOffset.x, y: position.y + pendingOffset.y })
     setPendingOffset({ x: 0, y: 0 })
   }, [dragging, previousDragging, position, pendingOffset, onMove])
+
+  useEffect(() => {
+    setPendingSize(size)
+  }, [size])
+
+  useEffect(() => {
+    if (resizing || !previousResizing) return
+
+    onResize(pendingSize)
+  }, [resizing, previousResizing, pendingSize, onResize])
 
   return (
     // TODO unfocused style
@@ -358,7 +387,13 @@ const Window = ({ title, position, size: { height, width }, resizable, onMove, o
         width={width}
         handle={(_, ref) => <DragHandle ref={ref} className='no-drag absolute right-[6px] bottom-[6px]' />}
         resizeHandles={resizable && !collapsed ? ['se'] : []}
-        onResize={(_, { size }) => onResize(size)}
+        onResizeStart={() => setResizing(true)}
+        onResize={(_, { size: newSize }) => setPendingSize(pendingSize => ({
+          // subtract current size to get delta
+          height: pendingSize.height + newSize.height - size.height,
+          width: pendingSize.width + newSize.width - size.width
+        }))}
+        onResizeStop={() => setResizing(false)}
       >
         <div
           className='relative flex flex-col'
@@ -378,9 +413,11 @@ const Window = ({ title, position, size: { height, width }, resizable, onMove, o
           <Body className='flex-1 min-h-0' resizable={resizable} collapsed={collapsed}>
             {children}
           </Body>
-          {/* TODO add resize ghost */}
           {dragging
-            ? <Ghost className='absolute top-0 h-full w-full' position={pendingOffset} />
+            ? <Ghost type='move' position={pendingOffset} />
+            : null}
+          {resizing
+            ? <Ghost type='resize' style={{ width: `${pendingSize.width}px`, height: `${pendingSize.height}px` }} />
             : null}
         </div>
       </Resizable>
