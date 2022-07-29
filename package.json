@@ -13,7 +13,8 @@
   },
   "dependencies": {
     "react-draggable": "^4.4.5",
-    "react-resizable": "^3.0.4"
+    "react-resizable": "^3.0.4",
+    "react-resize-detector": "^7.1.2"
   },
   "devDependencies": {
     "@babel/core": "^7.18.9",

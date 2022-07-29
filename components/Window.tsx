@@ -1,6 +1,7 @@
 import { forwardRef, HTMLAttributes, MouseEventHandler, PropsWithChildren, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { DraggableCore as Draggable } from 'react-draggable'
 import { Resizable } from 'react-resizable'
+import { useResizeDetector } from 'react-resize-detector'
 import { clamp, usePrevious } from '../utils'
 import 'react-resizable/css/styles.css'
 
@@ -234,7 +235,7 @@ const ScrollBar = ({ axis, spaceShown, totalSpace, position, focused, onScroll, 
   const scrollable = spaceShown !== null && totalSpace !== null && spaceShown < totalSpace
   const thumbPosition = spaceShown === null || totalSpace === null
     ? 0
-    : position / (totalSpace - spaceShown)
+    : clamp(position / (totalSpace - spaceShown), 0, 1)
 
   const scrollButtonAmount = 25
 
@@ -290,7 +291,19 @@ const Body = ({ resizable, focused, children, ...props }: BodyProps) => {
   const [scrollPosition, setScrollPosition] = useState<Vector2D>({ x: 0, y: 0 })
   const [contentSize, setContentSize] = useState<Size2D|null>(null)
   const [displayedSize, setDisplayedSize] = useState<Size2D|null>(null)
-  const contentRef = useRef<HTMLDivElement>(null)
+  const { width: resizeWidth, height: resizeHeight, ref: contentRef } = useResizeDetector<HTMLDivElement>()
+
+  useEffect(() => {
+    setDisplayedSize(
+      resizeWidth === undefined || resizeHeight === undefined
+        ? null
+        : { width: resizeWidth, height: resizeHeight }
+    )
+
+    if (contentRef.current) {
+      setScrollPosition({ x: contentRef.current.scrollLeft, y: contentRef.current.scrollTop })
+    }
+  }, [resizeWidth, resizeHeight, contentRef])
 
   useLayoutEffect(() => {
     setContentSize(
@@ -298,12 +311,7 @@ const Body = ({ resizable, focused, children, ...props }: BodyProps) => {
         ? { width: contentRef.current.scrollWidth, height: contentRef.current.scrollHeight }
         : null
     )
-    setDisplayedSize(
-      contentRef.current
-        ? { width: contentRef.current.clientWidth, height: contentRef.current.clientHeight }
-        : null
-    )
-  }, [])
+  }, [contentRef])
 
   const handleScroll = useCallback<ScrollBarProps['onScroll']>((axis, amount) => {
     if (!contentSize || !displayedSize) return
@@ -321,7 +329,7 @@ const Body = ({ resizable, focused, children, ...props }: BodyProps) => {
 
     contentRef.current.scrollLeft = scrollPosition.x
     contentRef.current.scrollTop = scrollPosition.y
-  }, [scrollPosition])
+  }, [contentRef, scrollPosition])
 
   return (
     <Frame focused={focused} {...props}>
@@ -423,7 +431,6 @@ const Window = ({ title, position, size, resizable, focused, onMove, onResize, o
   }, [onBlur])
 
   return (
-    // TODO adjust scrollbar thumb size as window size changes
     <Draggable
       cancel='.no-drag'
       onStart={() => setDragging(true)}
