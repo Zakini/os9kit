@@ -1,5 +1,6 @@
 import { useArgs } from '@storybook/client-api'
 import { ComponentMeta, ComponentStory } from '@storybook/react'
+import { useState } from 'react'
 import Window from '../components/Window'
 
 export default {
@@ -16,13 +17,16 @@ export default {
 
 const Template: ComponentStory<typeof Window> = (args) => {
   const [_, updateArgs] = useArgs()
+  const [closed, setClosed] = useState(false)
+
+  if (closed) return <div />
 
   return (
     <Window
       {...args}
       onMove={position => updateArgs({ position })}
       onResize={size => updateArgs({ size })}
-      onClose={() => alert('Window should close')}
+      onClose={() => setClosed(true)}
       onFocus={() => updateArgs({ focused: true })}
       onBlur={() => updateArgs({ focused: false })}
     >
