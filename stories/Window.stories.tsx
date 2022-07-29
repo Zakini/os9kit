@@ -9,7 +9,8 @@ export default {
     title: 'Example Window',
     position: { x: 0, y: 0 },
     size: { width: 200, height: 200 },
-    resizable: false
+    resizable: false,
+    focused: true
   }
 } as ComponentMeta<typeof Window>
 
@@ -59,4 +60,9 @@ export const Basic = Template.bind({})
 export const Resizable = Template.bind({})
 Resizable.args = {
   resizable: true
+}
+
+export const Unfocused = Template.bind({})
+Unfocused.args = {
+  focused: false
 }

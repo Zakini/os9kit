@@ -31,8 +31,14 @@ type GrillProps = HTMLAttributes<HTMLDivElement> & {
 type TitleBarProps = HTMLAttributes<HTMLDivElement> & {
   title: string
   collapsed: boolean
+  focused: boolean
   onClose: MouseEventHandler<HTMLButtonElement>
   onCollapse: MouseEventHandler<HTMLButtonElement>
+}
+
+type ScrollBarTrackProps = {
+  scrollable: boolean
+  focused: boolean
 }
 
 type ScrollBarThumbProps = {
@@ -52,15 +58,18 @@ type ScrollBarButtonProps = HTMLAttributes<HTMLButtonElement> & {
 type ScrollBarProps = Omit<HTMLAttributes<HTMLDivElement>, 'onScroll'>
   & Omit<ScrollBarThumbProps, 'onDrag'>
   & {
+    focused: boolean
     onScroll: (axis: Axis, amount: number) => void
   }
 
 type FrameProps = PropsWithChildren<HTMLAttributes<HTMLDivElement>> & {
   collapsed: boolean
+  focused: boolean
 }
 
 type BodyProps = FrameProps & {
   resizable: boolean
+  focused: boolean
 }
 
 type GhostProps = HTMLAttributes<HTMLDivElement> & {
@@ -72,6 +81,7 @@ type WindowProps = PropsWithChildren<Pick<TitleBarProps, 'title' | 'onClose'>> &
   position: Vector2D
   size: Size2D
   resizable: boolean
+  focused: boolean
   onMove: (position: Vector2D) => void
   onResize: (size: Size2D) => void
 }
@@ -101,37 +111,58 @@ const Grill = ({ spacing = 2, colourA = 'rgb(153,153,153)', colourB = 'rgb(221,2
   }} {...props} />
 )
 
-const TitleBar = ({ title, collapsed, onClose, onCollapse, className, ...props }: TitleBarProps) => {
-  const layout = `flex justify-between items-center space-x-[5px] ${collapsed ? 'h-[22px]' : 'h-[20px]'} p-[4px] pb-[5px]`
-  const font = 'text-[9px]'
-  const bg = 'bg-[rgb(204,204,204)]'
-  const border = `border border-r-2 ${collapsed ? 'border-b-2' : 'border-b-0'} border-[rgb(45,45,51)] border-r-[rgb(19,19,19)]`
+const TitleBar = ({ title, collapsed, focused, onClose, onCollapse, className, ...props }: TitleBarProps) => {
+  const layout = `flex ${focused ? 'justify-between' : 'justify-center'} items-center space-x-[5px] ${collapsed ? 'h-[22px]' : 'h-[20px]'} p-[4px] pb-[5px]`
+  const font = `text-[9px] ${focused ? 'text-[rgb(25,25,25)]' : 'text-[rgb(132,132,132)]'}`
+  const bg = focused ? 'bg-[rgb(204,204,204)]' : 'bg-[rgb(221,221,221)]'
+  const border = `border border-r-2 ${collapsed ? 'border-b-2' : 'border-b-0'} ${focused ? 'border-[rgb(45,45,51)] border-r-[rgb(19,19,19)]' : 'border-[rgb(104,104,110)] border-r-[rgb(102,102,102)]'}`
 
   return (
     // TODO border gradient
     <div className={`${layout} ${font} ${bg} ${border} ${className ?? ''}`} {...props}>
-      <TitleBarButton type='close' className='flex-none' onClick={onClose} />
-      <Grill className='flex-1 h-[11px] border-t border-[rgb(231,231,231)]' />
+      {focused
+        ? <>
+            <TitleBarButton type='close' className='flex-none' onClick={onClose} />
+            <Grill className='flex-1 h-[11px] border-t border-[rgb(231,231,231)]' />
+          </>
+        : null}
       <span className='flex-none cursor-default'>{title}</span>
-      <Grill className='flex-1 h-[11px] border-t border-[rgb(231,231,231)]' />
-      {/* TODO add shrink button when window is resizable */}
-      <TitleBarButton type='collapse' className='flex-none' onClick={onCollapse} />
+      {focused
+        ? <>
+            <Grill className='flex-1 h-[11px] border-t border-[rgb(231,231,231)]' />
+            {/* TODO add shrink button when window is resizable */}
+            <TitleBarButton type='collapse' className='flex-none' onClick={onCollapse} />
+          </>
+        : null}
     </div>
   )
 }
 
-const Frame = ({ className, collapsed, children, ...props }: FrameProps) => (
-  <div
-    // TODO outer border should be a drop shadow
-    className={`${collapsed ? 'hidden' : ''} border-2 border-l border-t-0 border-l-[rgb(45,45,51)] border-[rgb(19,19,19)] ${className ?? ''}`}
-    {...props}
-  >
-    {/* TODO border gradient 217 -> 140, left to right, top to bottom */}
-    <div className='h-full border-4 border-t-0 border-[rgb(204,204,204)]'>
-      {children}
+const Frame = ({ className, collapsed, focused, children, ...props }: FrameProps) => {
+  const border = `border-2 border-l border-t-0  ${focused ? 'border-l-[rgb(45,45,51)] border-[rgb(19,19,19)]' : 'border-l-[rgb(104,104,110)] border-[rgb(102,102,102)]'}`
+
+  return (
+    <div
+      // TODO outer border should be a drop shadow
+      className={`${collapsed ? 'hidden' : ''} ${border} ${className ?? ''}`}
+      {...props}
+    >
+      {/* TODO border gradient 217 -> 140, left to right, top to bottom */}
+      <div className={`h-full border-4 border-t-0 ${focused ? 'border-[rgb(204,204,204)]' : 'border-[rgb(221,221,221)]'}`}>
+        {children}
+      </div>
     </div>
-  </div>
-)
+  )
+}
+
+const ScrollBarTrack = ({ scrollable, focused }: ScrollBarTrackProps) => {
+  return (
+    <div
+      className={`h-full ${scrollable && focused ? 'bg-[rgb(170,170,170)]' : 'bg-[rgb(238,238,238)]'}`}
+      style={scrollable && focused ? { boxShadow: 'inset 1px 1px 2px rgb(106,106,106)' } : {}}
+    />
+  )
+}
 
 const ScrollBarThumb = ({ axis, spaceShown, totalSpace, position, onDrag }: ScrollBarThumbProps) => {
   const [dragging, setDragging] = useState(false)
@@ -193,7 +224,7 @@ const ScrollBarButton = ({ direction, active, className, ...props }: ScrollBarBu
   )
 }
 
-const ScrollBar = ({ axis, spaceShown, totalSpace, position, onScroll, className, ...props }: ScrollBarProps) => {
+const ScrollBar = ({ axis, spaceShown, totalSpace, position, focused, onScroll, className, ...props }: ScrollBarProps) => {
   const borderSides = axis === 'x' ? 'border-y' : 'border-x'
   const flexDirection = axis === 'x' ? 'flex-row' : 'flex-col'
   const dividerSide = axis === 'x' ? 'border-l' : 'border-t'
@@ -206,15 +237,11 @@ const ScrollBar = ({ axis, spaceShown, totalSpace, position, onScroll, className
   const scrollButtonAmount = 25
 
   return (
-    <div className={`${borderSides} border-[rgb(62,62,62)] ${className ?? ''}`} {...props}>
+    <div className={`${borderSides} ${focused ? 'border-[rgb(62,62,62)]' : 'border-[rgb(126,126,126)]'} ${className ?? ''}`} {...props}>
       <div className={`h-full flex ${flexDirection}`}>
         <div className='relative grow'>
-          {/* Track */}
-          <div
-            className={`h-full ${scrollable ? 'bg-[rgb(170,170,170)]' : 'bg-[rgb(238,238,238)]'}`}
-            style={scrollable ? { boxShadow: 'inset 1px 1px 2px rgb(106,106,106)' } : {}}
-          />
-          {scrollable
+          <ScrollBarTrack scrollable={scrollable} focused={focused} />
+          {scrollable && focused
             ? <ScrollBarThumb
               position={thumbPosition}
               // HACK need to boost the scroll speed here to match how the mouse moves, why?
@@ -223,21 +250,23 @@ const ScrollBar = ({ axis, spaceShown, totalSpace, position, onScroll, className
             />
             : null}
         </div>
-        <div className={`z-10 flex-none flex ${flexDirection} ${dividerSide} ${scrollable ? 'border-[rgb(53,53,53)]' : 'border-[rgb(123,123,123)]'}`}>
-          {/* TODO click and hold to keep scrolling */}
-          <ScrollBarButton
-            direction={axis === 'x' ? 'left' : 'up'}
-            active={scrollable}
-            className='flex-none'
-            onClick={() => onScroll(axis, -scrollButtonAmount)}
-          />
-          <ScrollBarButton
-            direction={axis === 'x' ? 'right' : 'down'}
-            active={scrollable}
-            className={`flex-none ${dividerSide} ${scrollable ? 'border-[rgb(56,56,56)]' : 'border-[rgb(161,161,161)]'}`}
-            onClick={() => onScroll(axis, scrollButtonAmount)}
-          />
-        </div>
+        {focused
+          ? <div className={`z-10 flex-none flex ${flexDirection} ${dividerSide} ${scrollable ? 'border-[rgb(53,53,53)]' : 'border-[rgb(123,123,123)]'}`}>
+            {/* TODO click and hold to keep scrolling */}
+            <ScrollBarButton
+              direction={axis === 'x' ? 'left' : 'up'}
+              active={scrollable}
+              className='flex-none'
+              onClick={() => onScroll(axis, -scrollButtonAmount)}
+            />
+            <ScrollBarButton
+              direction={axis === 'x' ? 'right' : 'down'}
+              active={scrollable}
+              className={`flex-none ${dividerSide} ${scrollable ? 'border-[rgb(56,56,56)]' : 'border-[rgb(161,161,161)]'}`}
+              onClick={() => onScroll(axis, scrollButtonAmount)}
+            />
+          </div>
+          : null}
       </div>
     </div>
   )
@@ -245,17 +274,16 @@ const ScrollBar = ({ axis, spaceShown, totalSpace, position, onScroll, className
 
 const DragHandle = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(function DragHandle ({ className, ...props }, ref) {
   return (
-    <div ref={ref} className={`h-[16px] w-[16px] border-l border-t border-[rgb(62,62,62)] ${className ?? ''}`} {...props}>
-      <div className='h-[21px] w-[21px] border-b-2 border-r-2 border-[rgb(19,19,19)] bg-[rgb(204,204,204)]'>
-        <Grill spacing={3} className='h-[10px] w-[10px] -rotate-45 translate-x-[4px] translate-y-[4px] border-t border-[rgb(231,231,231)]' />
-      </div>
+    <div ref={ref} className={`h-[21px] w-[21px] border-b-2 border-r-2 border-[rgb(19,19,19)] ${className ?? ''}`} {...props}>
+      <Grill spacing={3} className='h-[10px] w-[10px] -rotate-45 translate-x-[4px] translate-y-[4px] border-t border-[rgb(231,231,231)]' />
     </div>
   )
 })
 
-const Body = ({ resizable, children, ...props }: BodyProps) => {
+const Body = ({ resizable, focused, children, ...props }: BodyProps) => {
   const gridTemplate = resizable ? '1fr 16px' : '1fr'
   const border = resizable ? 'border-l border-t' : 'border'
+  const borderColour = focused ? 'border-[rgb(51,51,51)] border-r-[rgb(62,62,62)] border-b-[rgb(59,59,59)]' : 'border-[rgb(121,121,121)] border-l-[rgb(124,124,124)]'
 
   const [scrollPosition, setScrollPosition] = useState<Vector2D>({ x: 0, y: 0 })
   const [contentSize, setContentSize] = useState<Size2D|null>(null)
@@ -294,8 +322,11 @@ const Body = ({ resizable, children, ...props }: BodyProps) => {
   }, [scrollPosition])
 
   return (
-    <Frame {...props}>
-      <div className={`no-drag h-full grid ${border} border-[rgb(51,51,51)] border-r-[rgb(62,62,62)] border-b-[rgb(59,59,59)]`} style={{ gridTemplateColumns: gridTemplate, gridTemplateRows: gridTemplate }}>
+    <Frame focused={focused} {...props}>
+      <div
+        className={`no-drag h-full grid ${border} ${borderColour}`}
+        style={{ gridTemplateColumns: gridTemplate, gridTemplateRows: gridTemplate }}
+      >
         <div ref={contentRef} className='overflow-hidden'>
           {children}
         </div>
@@ -307,6 +338,7 @@ const Body = ({ resizable, children, ...props }: BodyProps) => {
               totalSpace={contentSize?.height ?? null}
               position={scrollPosition.y}
               className='flex-none'
+              focused={focused}
               onScroll={handleScroll}
             />
             <ScrollBar
@@ -315,8 +347,10 @@ const Body = ({ resizable, children, ...props }: BodyProps) => {
               totalSpace={contentSize?.width ?? null}
               position={scrollPosition.x}
               className='flex-none'
+              focused={focused}
               onScroll={handleScroll}
             />
+            <div className={`border-l border-t ${focused ? 'bg-[rgb(204,204,204)] border-[rgb(62,62,62)]' : 'bg-[rgb(221,221,221)] border-[rgb(121,121,121)]'}`} />
           </>
           : null}
       </div>
@@ -346,7 +380,7 @@ const Ghost = ({ type, position = { x: 0, y: 0 }, className, style, ...props }: 
   </div>
 )
 
-const Window = ({ title, position, size, resizable, onMove, onResize, onClose, children }: WindowProps) => {
+const Window = ({ title, position, size, resizable, focused, onMove, onResize, onClose, children }: WindowProps) => {
   const [collapsed, setCollapsed] = useState(false)
   const [dragging, setDragging] = useState(false)
   const previousDragging = usePrevious(dragging)
@@ -375,7 +409,6 @@ const Window = ({ title, position, size, resizable, onMove, onResize, onClose, c
   }, [resizing, previousResizing, pendingSize, onResize])
 
   return (
-    // TODO unfocused style
     <Draggable
       cancel='.no-drag'
       onStart={() => setDragging(true)}
@@ -385,8 +418,8 @@ const Window = ({ title, position, size, resizable, onMove, onResize, onClose, c
       <Resizable
         height={height}
         width={width}
-        handle={(_, ref) => <DragHandle ref={ref} className='no-drag absolute right-[6px] bottom-[6px]' />}
-        resizeHandles={resizable && !collapsed ? ['se'] : []}
+        handle={(_, ref) => <DragHandle ref={ref} className='no-drag absolute right-0 bottom-0' />}
+        resizeHandles={resizable && !collapsed && focused ? ['se'] : []}
         onResizeStart={() => setResizing(true)}
         onResize={(_, { size: newSize }) => setPendingSize(pendingSize => ({
           // subtract current size to get delta
@@ -407,10 +440,11 @@ const Window = ({ title, position, size, resizable, onMove, onResize, onClose, c
             className='flex-none'
             title={title}
             collapsed={collapsed}
+            focused={focused}
             onClose={onClose}
             onCollapse={() => setCollapsed(c => !c)}
           />
-          <Body className='flex-1 min-h-0' resizable={resizable} collapsed={collapsed}>
+          <Body className='flex-1 min-h-0' resizable={resizable} collapsed={collapsed} focused={focused}>
             {children}
           </Body>
           {dragging
